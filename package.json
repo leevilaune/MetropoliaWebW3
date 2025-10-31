@@ -3,7 +3,11 @@
     "express": "^5.1.0"
   },
   "scripts": {
-    "t1": "node t1.js"
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "type": "module",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
 }
-}
-
