@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "scripts": {
+    "t1": "node t1.js"
+}
+}
+
