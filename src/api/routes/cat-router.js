@@ -1,4 +1,6 @@
 import express from 'express';
+import upload from "../middlewares/upload.js";
+
 import{
     getCats,
     getCatById,
@@ -9,7 +11,8 @@ import{
 
 const catRouter = express.Router();
 
-catRouter.route("/").get(getCats).post(postCat);
+catRouter.route("/").get(getCats).post(upload.single("file"), postCat);;
 catRouter.route("/:id").get(getCatById).put(putCat).delete(deleteCat);
+
 
 export default catRouter;
