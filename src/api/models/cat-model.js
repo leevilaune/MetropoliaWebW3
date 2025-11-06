@@ -1,64 +1,103 @@
-const catItems = [
-  {
-    cat_id: 1,
-    name: "Garfield",
-    birthdate: "2015-04-20",
-    weight: 27,
-    owner: "Jon Arbuckle",
-    image: "https://upload.wikimedia.org/wikipedia/en/thumb/b/bc/Garfield_the_Cat.svg/1200px-Garfield_the_Cat.svg.png",
-  },
-  {
-    cat_id: 2,
-    name: "Fat Cat",
-    birthdate: "1920-06-09",
-    weight: 150,
-    owner: "US Govt",
-    image: "https://upload.wikimedia.org/wikipedia/commons/8/89/The_Subsidised_Mineowner.jpg"
-  },
-];
+import promisePool from "../../utils/database.js";
 
-const listAllCats = ()=> {
-    return catItems;
+const listAllCats = async () => {
+  const [rows] = await promisePool.query(
+    "SELECT c.* , o.name AS owner FROM wsk_cats AS c JOIN wsk_users AS o ON c.owner = o.user_id"
+  );
+  console.log("rows", rows);
+  return rows;
 };
 
-const findCatById = (id) => {
-    return catItems.find(item => item.cat_id==Number(id));
+const findCatsByOwner = async (id) => {
+  const [rows] = await promisePool.execute(
+    "SELECT * FROM wsk_cats WHERE owner = ?",
+    [id]
+  );
+  console.log("rows", rows);
+  if (rows.length === 0) {
+    return false;
+  }
+  return rows;
 };
 
-const addCat = (cat) => {
-    const {name, weight,birthdate,owner,image} = cat;
-    const newId = catItems[catItems.length-1].cat_id+1;
-    catItems.push({cat_id: newId, name,weight,birthdate,owner,image});
-    return {cat_id: newId};
+const findCatById = async (id) => {
+  const [rows] = await promisePool.execute(
+    "SELECT c.* , o.name AS owner FROM wsk_cats AS c JOIN wsk_users AS o ON c.owner = o.user_id WHERE cat_id = ?",
+    [id]
+  );
+  console.log("rows", rows);
+  if (rows.length === 0) {
+    return false;
+  }
+  return rows[0];
 };
 
-const removeCat = (id) => {
-    try{
-        catItems.splice(catItems.findIndex(item => item.cat_id==Number(id)));
-        return {success: true, id: id};
-    }catch{
-        return {success: false};
-    }
-}
+const addCat = async (cat) => {
+  let { cat_name, weight, owner, filename, birthdate } = cat;
+  filename = `uploads/${cat.image}`;
+  console.log(cat);
+  const sql = `INSERT INTO wsk_cats (cat_name, weight, owner, filename, birthdate)
+               VALUES (?, ?, ?, ?, ?)`;
+  const params = [cat_name, weight, owner, filename, birthdate];
+  console.log(params);
+  const rows = await promisePool.execute(sql, params);
+  console.log("rows", rows);
+  if (rows[0].affectedRows === 0) {
+    return false;
+  }
+  return { cat_id: rows[0].insertId };
+};
+const modifyCat = async (data) => {
+  const fields = [];
+  const values = [];
 
-const updateCat = (catData) => {
-    console.log(catData);
-    const cat = catItems.find(item => item.cat_id === Number(catData.cat_id));
+  if (data.cat_name) {
+    fields.push("cat_name = ?");
+    values.push(data.cat_name);
+  }
+  if (data.birthdate) {
+    fields.push("birthdate = ?");
+    values.push(data.birthdate);
+  }
+  if (data.weight) {
+    fields.push("weight = ?");
+    values.push(data.weight);
+  }
+  if (data.owner) {
+    fields.push("owner = ?");
+    values.push(data.owner);
+  }
+  if (data.image) {
+    fields.push("image = ?");
+    values.push(data.image);
+  }
 
-    if (!cat) {
-        return { error: 'Cat not found' };
-    }else if(cat.cat_id === undefined){
-        return { error: 'cat_id required'};
+  if (fields.length === 0) return {status: 400,message: "No fields to update"};
+  if (!userData.cat_id) return {status: 400,message: "cat_id required"};
 
-    }
+  const sql = `UPDATE wsk_cats SET ${fields.join(", ")} WHERE cat_id = ?`;
+  values.push(data.cat_id);
 
-    if (catData.name !== undefined) cat.name = catData.name;
-    if (catData.weight !== undefined) cat.weight = catData.weight;
-    if (catData.birthdate !== undefined) cat.birthdate = catData.birthdate;
-    if (catData.owner !== undefined) cat.owner = catData.owner;
-    if (catData.image !== undefined) cat.image = catData.image;
+  const [rows] = await promisePool.execute(sql, values);
+  return rows;
+};
 
-    return {cat}
-}
-
-export {listAllCats, findCatById, addCat, removeCat, updateCat};
+const removeCat = async (id) => {
+  const [rows] = await promisePool.execute(
+    "DELETE FROM wsk_cats WHERE cat_id = ?",
+    [id]
+  );
+  console.log("rows", rows);
+  if (rows.affectedRows === 0) {
+    return false;
+  }
+  return { message: "success" };
+};
+export {
+  listAllCats,
+  findCatById,
+  addCat,
+  modifyCat,
+  removeCat,
+  findCatsByOwner,
+};
