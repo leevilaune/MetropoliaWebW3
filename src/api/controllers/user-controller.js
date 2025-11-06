@@ -1,44 +1,85 @@
-import {addUser, findUserById, listAllUsers, updateUser, removeUser} from "../models/user-model.js";
+import {
+  addUser,
+  findUserById,
+  listAllUsers,
+  updateUser,
+  removeUser,
+} from "../models/user-model.js";
 
-const getUsers = (req, res) => {
-    res.json(listAllUsers());
+const getUsers = async (req, res) => {
+  try {
+    const users = await listAllUsers();
+    res.json(users);
+  } catch (error) {
+    console.error("Error getting users:", error);
+    res.status(500).json({ error: "Database query failed" });
+  }
 };
 
-const getUserById = (req, res) => {
-    const user = findUserById(req.params.id);
-    if(user){
-        res.json(user);
-    }else{
-        res.sendStatus(404);
-    }
-};
-
-const postUser = (req, res) => {
-    const result = addUser(req.body);
-    if(result.user_id){
-        res.status(201);
-        res.json({message: "New user added: ", result});
-    }else {
-        res.sendStatus(400);
-    }
-};
-
-const putUser = (req, res) => {
-    const updated = updateUser(req.body);
-    if (updated) {
-        res.json({message: 'User item updated.'});
+const getUserById = async (req, res) => {
+  try {
+    const user = await findUserById(req.params.id);
+    if (user) {
+      console.log(user);
+      res.json(user);
     } else {
-        res.sendStatus(404);
+      res.status(404).json({ message: "User not found" });
     }
+  } catch (error) {
+    console.error("Error getting user:", error);
+    res.status(500).json({ error: "Database query failed" });
+  }
 };
 
-const deleteUser = (req, res) => {
-    const delSatus = removeUser(req.body);
-    if(delSatus){
-        res.json({message: 'User item deleted.'});
-    }else{
-        res.sendStatus(401);
+const postUser = async (req, res) => {
+  try {
+    console.log(req.body);
+    console.log(req.file);
+
+    const user_id = req.params.id;
+    const result = await addUser(userData);
+
+    if (result.user_id) {
+      res.status(201).json({
+        message: "New user added",
+        result,
+      });
+    } else {
+      res.status(400).json({ error: "Failed to add user" });
     }
+  } catch (error) {
+    console.error("Error adding user:", error);
+    res.status(500).json({ error: "Database insert failed" });
+  }
 };
 
-export {getUsers, getUserById, postUser, putUser, deleteUser};
+const putUser = async (req, res) => {
+  try {
+    console.log(req.body);
+    const updated = await updateUser(req.body);
+    if (updated) {
+      res.json({ message: "User item updated." });
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ error: "Database update failed" });
+  }
+};
+
+const deleteUser = async (req, res) => {
+  try {
+    const delStatus = await removeUser(req.params.id);
+    if (delStatus) {
+      res.json({ message: "User item deleted." });
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ error: "Database delete failed" });
+  }
+};
+
+export { getUsers, getUserById, postUser, putUser, deleteUser };

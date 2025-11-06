@@ -145,5 +145,6 @@ dist
 uploads/*
 # except one (empty) file to have the folder in version control
 !uploads/.gitkeep
-
+.env
+.ssh_tunnel.sh
 # End of https://www.toptal.com/developers/gitignore/api/node

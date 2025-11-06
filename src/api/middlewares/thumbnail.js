@@ -6,7 +6,7 @@ const createThumbnail = async (req, res, next) => {
     return;
   }
   console.log(req.file.path);
-  const thumbPath = `uploads/${req.body.name.toLowerCase()}_thumb.png`;
+  const thumbPath = `uploads/${req.body.cat_name.toLowerCase()}_thumb.png`;
   await sharp(req.file.path)
     .resize(160, 160, {
       kernel: sharp.kernel.nearest,

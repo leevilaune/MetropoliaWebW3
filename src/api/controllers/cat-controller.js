@@ -1,47 +1,102 @@
-import {addCat, findCatById, listAllCats, updateCat, removeCat} from "../models/cat-model.js";
+import {
+  addCat,
+  findCatById,
+  listAllCats,
+  modifyCat,
+  removeCat,
+  findCatsByOwner,
+} from "../models/cat-model.js";
 
-const getCats = (req, res) => {
-    res.json(listAllCats());
+const getCats = async (req, res) => {
+  try {
+    const cats = await listAllCats();
+    res.json(cats);
+  } catch (error) {
+    console.error("Error getting cats:", error);
+    res.status(500).json({ error: "Database query failed" });
+  }
 };
 
-const getCatById = (req, res) => {
-    const cat = findCatById(req.params.id);
-    if(cat){
-        res.json(cat);
-    }else{
-        res.sendStatus(404);
+const getCatsByOwner = async (req, res) => {
+  try {
+    const cats = await findCatsByOwner(req.params.id);
+    if(!cats){
+        res.json({message: `No cats for owner ${req.params.id}`});
     }
+    res.json(cats);
+  } catch (error) {
+    console.error("Error getting cats:", error);
+    res.status(500).json({ error: "Database query failed" });
+  }
 };
 
-const postCat = (req, res) => {
+const getCatById = async (req, res) => {
+  try {
+    const cat = await findCatById(req.params.id);
+    if (cat) {
+      console.log(cat);
+      res.json(cat);
+    } else {
+      res.status(404).json({ message: "Cat not found" });
+    }
+  } catch (error) {
+    console.error("Error getting cat:", error);
+    res.status(500).json({ error: "Database query failed" });
+  }
+};
+
+const postCat = async (req, res) => {
+  try {
     console.log(req.body);
     console.log(req.file);
-    const result = addCat(req.body);
 
-    if(result.cat_id){
-        res.status(201);
-        res.json({message: "New cat added: ", result});
-    }else {
-        res.sendStatus(400);
-    }
-};
+    const catData = {
+      ...req.body,
+      image: req.file ? req.file.filename : null,
+    };
 
-const putCat = (req, res) => {
-    const updated = updateCat(req.body);
-    if (updated) {
-        res.json({message: 'Cat item updated.'});
+    const result = await addCat(catData);
+
+    if (result.cat_id) {
+      res.status(201).json({
+        message: "New cat added",
+        result,
+      });
     } else {
-        res.sendStatus(404);
+      res.status(400).json({ error: "Failed to add cat" });
     }
+  } catch (error) {
+    console.error("Error adding cat:", error);
+    res.status(500).json({ error: "Database insert failed" });
+  }
 };
 
-const deleteCat = (req, res) => {
-    const delSatus = removeCat(req.body);
-    if(delSatus){
-        res.json({message: 'Cat item deleted.'});
-    }else{
-        res.sendStatus(401);
+const putCat = async (req, res) => {
+  try {
+    const updated = await modifyCat(req.body);
+    if (updated) {
+      res.json({ message: "Cat item updated." });
+    } else {
+      res.status(404).json({ message: "Cat not found" });
     }
+  } catch (error) {
+    console.error("Error updating cat:", error);
+    res.status(500).json({ error: "Database update failed" });
+  }
 };
 
-export {getCats, getCatById, postCat, putCat, deleteCat};
+const deleteCat = async (req, res) => {
+  try {
+    const delStatus = await removeCat(req.params.id);
+    if (delStatus) {
+      res.json({ message: "Cat item deleted." });
+    } else {
+      res.status(404).json({ message: "Cat not found" });
+    }
+  } catch (error) {
+    console.error("Error deleting cat:", error);
+    res.status(500).json({ error: "Database delete failed" });
+  }
+};
+
+export { getCats, getCatById, postCat, putCat, deleteCat, getCatsByOwner};
