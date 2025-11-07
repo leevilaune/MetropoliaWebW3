@@ -1,11 +1,14 @@
 import express from "express";
 import {catRoute,userRoute,authRoute}from "./api/index.js";
+import { notFoundHandler, errorHandler } from "./api/middlewares/errorhandler.js";
 import cors from 'cors';
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors())
+app.use(cors());
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 app.use('/api/v1', catRoute);
 app.use('/api/v1', userRoute);

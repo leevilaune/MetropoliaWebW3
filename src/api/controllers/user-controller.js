@@ -57,8 +57,12 @@ const postUser = async (req, res) => {
 
 const putUser = async (req, res) => {
   try {
-    if (!(res.locals.user.user_id == req.params.id) && !(res.locals.user.role == "admin")) {
+    if (
+      !(res.locals.user.user_id == req.params.id) &&
+      !(res.locals.user.role == "admin")
+    ) {
       res.sendStatus(403);
+      return;
     }
     console.log(req.body);
     const updated = await updateUser(req.body);
@@ -78,8 +82,12 @@ const putUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
   try {
-    if (!(res.locals.user.user_id == req.params.id) && !(res.locals.user.role == "admin")) {
+    if (
+      !(res.locals.user.user_id == req.params.id) &&
+      !(res.locals.user.role == "admin")
+    ) {
       res.sendStatus(403);
+      return;
     }
     const delStatus = await removeUser(req.params.id);
     if (delStatus) {
