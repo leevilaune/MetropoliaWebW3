@@ -1,6 +1,7 @@
 import express from 'express';
 import upload from "../middlewares/upload.js";
 import createThumbnail from "../middlewares/thumbnail.js";
+import { authenticateToken } from '../middlewares/auth.js';
 
 import{
     getCats,
@@ -13,8 +14,8 @@ import{
 
 const catRouter = express.Router();
 
-catRouter.route("/").get(getCats).post(upload.single("file"), createThumbnail, postCat);;
-catRouter.route("/:id").get(getCatById).put(putCat).delete(deleteCat);
+catRouter.route("/").get(getCats).post(authenticateToken, upload.single("file"), createThumbnail, postCat);;
+catRouter.route("/:id").get(getCatById).put(authenticateToken, putCat).delete(authenticateToken, deleteCat);
 catRouter.route("/byowner/:id").get(getCatsByOwner);
 
 export default catRouter;

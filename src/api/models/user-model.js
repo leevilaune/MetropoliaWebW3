@@ -8,13 +8,15 @@ const listAllUsers = async () => {
 
 const findUserById = async (id) => {
   const [rows] = await promisePool.execute(
-    "SELECT * FROM wsk_users WHERE user_id = ?",[id]
+    "SELECT * FROM wsk_users WHERE user_id = ?",
+    [id]
   );
-  console.log('rows', rows);
+  console.log("rows", rows);
   return rows[0];
 };
 
 const addUser = async (user) => {
+  console.log(user);
   const { name, username, email, role, password } = user;
   const sql = `INSERT INTO wsk_users (name, username, email, role, password) VALUES (?,?,?,?,?)`;
   const params = [name, username, email, role, password];
@@ -34,10 +36,10 @@ const removeUser = async (id) => {
   if (rows.affectedRows === 0) {
     return false;
   }
-  return { message: "succe" };
+  return { message: "success" };
 };
 
-const updateUser =  async (userData) => {
+const updateUser = async (userData) => {
   console.log(userData);
   const fields = [];
   const values = [];
@@ -62,8 +64,9 @@ const updateUser =  async (userData) => {
     fields.push("password = ?");
     values.push(userData.password);
   }
-  if (fields.length === 0) return {status: 400,message: "No fields to update"};
-  if (!userData.user_id) return {status: 400,message: "user_id required"};
+  if (fields.length === 0)
+    return { status: 400, message: "No fields to update" };
+  if (!userData.user_id) return { status: 400, message: "user_id required" };
 
   const sql = `UPDATE wsk_users SET ${fields.join(", ")} WHERE user_id = ?`;
   values.push(userData.user_id);
@@ -73,4 +76,14 @@ const updateUser =  async (userData) => {
   return values;
 };
 
-export { listAllUsers, findUserById, addUser, removeUser, updateUser };
+const getUserByUsername = async (user) => {
+  console.log(user);
+  const [rows] = await promisePool.execute(
+    "SELECT * FROM wsk_users WHERE username = ?",
+    [user]
+  );
+  console.log("rows", rows);
+  return rows[0];
+};
+
+export { listAllUsers, findUserById, addUser, removeUser, updateUser, getUserByUsername };
