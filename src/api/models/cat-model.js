@@ -2,7 +2,7 @@ import promisePool from "../../utils/database.js";
 
 const listAllCats = async () => {
   const [rows] = await promisePool.query(
-    "SELECT c.* , o.name AS owner FROM wsk_cats AS c JOIN wsk_users AS o ON c.owner = o.user_id"
+    "SELECT c.* , o.name AS owner_name FROM wsk_cats AS c JOIN wsk_users AS o ON c.owner = o.user_id"
   );
   console.log("rows", rows);
   return rows;
@@ -22,7 +22,7 @@ const findCatsByOwner = async (id) => {
 
 const findCatById = async (id) => {
   const [rows] = await promisePool.execute(
-    "SELECT c.* , o.name AS owner FROM wsk_cats AS c JOIN wsk_users AS o ON c.owner = o.user_id WHERE cat_id = ?",
+    "SELECT c.* , o.name AS owner_name FROM wsk_cats AS c JOIN wsk_users AS o ON c.owner = o.user_id WHERE cat_id = ?",
     [id]
   );
   console.log("rows", rows);
@@ -73,7 +73,7 @@ const modifyCat = async (data) => {
   }
 
   if (fields.length === 0) return {status: 400,message: "No fields to update"};
-  if (!userData.cat_id) return {status: 400,message: "cat_id required"};
+  //if (!data.cat_id) return {status: 400,message: "cat_id required"};
 
   const sql = `UPDATE wsk_cats SET ${fields.join(", ")} WHERE cat_id = ?`;
   values.push(data.cat_id);

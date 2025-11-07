@@ -20,8 +20,8 @@ const getCats = async (req, res) => {
 const getCatsByOwner = async (req, res) => {
   try {
     const cats = await findCatsByOwner(req.params.id);
-    if(!cats){
-        res.json({message: `No cats for owner ${req.params.id}`});
+    if (!cats) {
+      res.json({ message: `No cats for owner ${req.params.id}` });
     }
     res.json(cats);
   } catch (error) {
@@ -50,6 +50,12 @@ const postCat = async (req, res) => {
     console.log(req.body);
     console.log(req.file);
 
+    console.log(res.locals);
+
+    if (!req.body.owner) {
+      req.body.owner = res.locals.user.user_id;
+    }
+
     const catData = {
       ...req.body,
       image: req.file ? req.file.filename : null,
@@ -73,7 +79,16 @@ const postCat = async (req, res) => {
 
 const putCat = async (req, res) => {
   try {
-    const updated = await modifyCat(req.body);
+    const resUserId = res.locals.user.user_id;
+    console.log(req.params.id);
+    let cat = await findCatById(req.params.id);
+    const ownerId = cat.owner;
+    console.log(ownerId);
+    if (!(resUserId == ownerId) && !(res.locals.user.role == "admin")) {
+      res.status(403).json({ message: "Unauthorized" });
+      return;
+    }
+    const updated = await modifyCat({ cat_id: req.params.id, ...req.body });
     if (updated) {
       res.json({ message: "Cat item updated." });
     } else {
@@ -87,6 +102,15 @@ const putCat = async (req, res) => {
 
 const deleteCat = async (req, res) => {
   try {
+    console.log(req.body);
+    const resUserId = res.locals.user.user_id;
+    console.log(req.params.id);
+    let cat = await findCatById(req.params.id);
+    const ownerId = cat.owner;
+    if (!(resUserId == ownerId) && !(res.locals.user.role == "admin")) {
+      res.sendStatus(403);
+      return;
+    }
     const delStatus = await removeCat(req.params.id);
     if (delStatus) {
       res.json({ message: "Cat item deleted." });
@@ -99,4 +123,4 @@ const deleteCat = async (req, res) => {
   }
 };
 
-export { getCats, getCatById, postCat, putCat, deleteCat, getCatsByOwner};
+export { getCats, getCatById, postCat, putCat, deleteCat, getCatsByOwner };
